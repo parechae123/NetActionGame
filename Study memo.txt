@@ -1,0 +1,46 @@
+SocketIO에서는
+const http = require('http');
+const server = http.createServer(app);
+
+일단 리콰이어 한건 모듈을 받아온거로 왼쪽에 있는 자료명이 이름,오른쪽이 require('모듈명')
+const socketIO = require('socket.io');
+const io = socketIO(server);
+socketIO라고 선언해놓은 socketIO모듈을 server 주소에서 실행시킨다
+이때 http로 서버를 만들어줬는데 즉 서버 주소는 server에서 선언한 값과 같음
+
+
+아래 설명은 위에서 선언한 자료형에 기반함
+io.on('이벤트명',(받을 자료형)=>{})형태로 사용
+io.emit('이벤트명',보낼 자료형)형태로 사용
+이는 서버 클라 동일
+
+다만 클라에서는 socketio가 아닌
+socket.io-client모듈을 사용함
+작성예제
+const io = require('socket.io-client');
+
+// Socket.IO 서버 URL
+const socket = io('http://localhost:3000'); // 여기에는 해당하는 서버의 URL을 작성해야 합니다.
+소켓io 서버에서 선언된 http 주소를 사용함
+
+
+
+즉 이벤트명이 서로 동일해야 자료형을 받을 수 있음
+keypress 모듈을 사용하여 키로 동작하는 이벤트핸들러 작업 가능
+process.exit(); 스크립트 종료
+
+process.stdin.on('keypress', function (ch, key) {
+  // 스페이스바를 눌렀을 때 실행되는 로직
+  if (key && key.name === 'space') {
+    console.log('스페이스바를 눌렀습니다.');
+    sendMessage('아잉');
+    
+    // 스페이스바를 눌렀을 때 실행할 함수 또는 코드 작성
+  }
+  console.log(ch.key,'넌뭐냐 ch!');
+  if (key&&key.name ==='escape'){
+    process.exit();
+  }
+});
+
+ch는 키를 감지하여 charactor형태로 수집 실질적인 구현은 key에서 사용함
