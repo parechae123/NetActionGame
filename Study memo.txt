@@ -44,3 +44,6 @@ process.stdin.on('keypress', function (ch, key) {
 });
 
 ch는 키를 감지하여 charactor형태로 수집 실질적인 구현은 key에서 사용함
+
+https://github.com/uhm0311/SocketIOSharp
+https://github.com/itisnajim/SocketIOUnity
