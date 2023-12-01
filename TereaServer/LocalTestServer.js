@@ -5,10 +5,8 @@ const socketIO = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const jsonTest = {
-    name: '',
-    age: 1,
-};
+let UserList = [];
+
 
 // 정적 파일 제공을 위해 public 폴더를 사용합니다.
 app.use(express.static(__dirname + '/public'));
@@ -30,9 +28,26 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
+  socket.on('connectUser',()=>{
+    const tempName = genKey(8);
+    console.log("유저등록 : ");
+    UserList.push(tempName);
+    io.emit('connectUser',tempName);
+  });
 });
 
 // 서버를 3000번 포트에서 실행합니다.
 server.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
+
+function genKey(length){
+  let result = '';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  for(let i = 0; i< length; i++)
+  {
+      result += characters.charAt(Math.floor(Math.random()* characters.length));
+  }
+  return result;
+}
