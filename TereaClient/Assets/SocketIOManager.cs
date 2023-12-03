@@ -5,6 +5,7 @@ using System;
 using SocketIOClient;
 using JetBrains.Annotations;
 using UnityEngine.UI;
+using Newtonsoft.Json;
 
 public class SocketIOManager : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class SocketIOManager : MonoBehaviour
     public Button SendBTN;
     public InputField SendField;
     public Text chattingWindow;
-    [SerializeField] (string, int) nickName;
+    [SerializeField]private UserInfo userInfo;
     public Queue<string> chattingQueue = new Queue<string>();
     public Queue<string> playerLoadWaiting = new Queue<string>();
 
@@ -52,9 +53,9 @@ public class SocketIOManager : MonoBehaviour
         tempIO.OnConnected += (sender,e)=>
         {
             Debug.Log(tempIO.ServerUri+"에 연결됨");
+
             
         };
-
         socket = tempIO;
         socket.Connect();
         socket.On("chat message", (msg) =>
@@ -65,17 +66,34 @@ public class SocketIOManager : MonoBehaviour
         socket.On("connectUser", (ClientName) =>
         {
             Debug.Log("이름줄게");
-            Debug.Log(ClientName + "이름");
+            Debug.Log(ClientName.ToString() + "이름");
             playerLoadWaiting.Enqueue(ClientName.ToString());
-            nickName = ClientName.ToString();
+            
 
+        });
+        socket.On("setUserInfo", (userServerInfo) =>
+        {
+            string tempJsonSTR = userServerInfo.ToString();
+            tempJsonSTR = tempJsonSTR.Remove(tempJsonSTR.Length-1,1);
+            tempJsonSTR = tempJsonSTR.Remove(0,1);
+            UserInfo tempInfo = JsonConvert.DeserializeObject<UserInfo>(tempJsonSTR);
+            Debug.Log("이름줄게");
+            Debug.Log(tempJsonSTR + "이름");
+            userInfo = tempInfo;
         });
 
     }
     
     private void OnApplicationQuit()
     {
+        socket.Emit("RemoveUserInList", JsonConvert.SerializeObject(userInfo));
         socket.Disconnect();
         Debug.Log("연결 종료");
     }
+}
+[System.Serializable]
+public class UserInfo
+{
+    public int userListIndex;
+    public string userServerID;
 }
