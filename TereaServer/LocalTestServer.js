@@ -8,6 +8,7 @@ const io = socketIO(server);
 let UserList = [];
 
 
+
 // 정적 파일 제공을 위해 public 폴더를 사용합니다.
 app.use(express.static(__dirname + '/public'));
 
@@ -15,6 +16,14 @@ app.use(express.static(__dirname + '/public'));
 io.on('connection', (socket) => {
   console.log('a user connected');
 
+  const tempName = genKey(8);
+  console.log("유저등록 : ");
+  UserList.push(tempName);
+  for (let i = 0; i < UserList.length; i++) 
+  {
+    console.log(tempName,UserList[i]);
+    io.emit('connectUser',UserList[i]);
+  }
   // 클라이언트로부터 'chat message' 이벤트를 수신합니다.
   socket.on('chat message', (msg) => {
     console.log('message: ' + msg);
@@ -29,10 +38,7 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
   });
   socket.on('connectUser',()=>{
-    const tempName = genKey(8);
-    console.log("유저등록 : ");
-    UserList.push(tempName);
-    io.emit('connectUser',tempName);
+
   });
 });
 

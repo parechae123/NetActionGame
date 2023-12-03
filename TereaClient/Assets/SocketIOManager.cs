@@ -12,7 +12,7 @@ public class SocketIOManager : MonoBehaviour
     public Button SendBTN;
     public InputField SendField;
     public Text chattingWindow;
-    [SerializeField] string nickName;
+    [SerializeField] (string, int) nickName;
     public Queue<string> chattingQueue = new Queue<string>();
     public Queue<string> playerLoadWaiting = new Queue<string>();
 
