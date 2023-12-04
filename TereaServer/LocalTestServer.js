@@ -69,12 +69,12 @@ io.on('connection', (socket) => {
   });
 
 
-
   // 클라이언트가 연결을 종료할 때 실행됩니다.
   socket.on('RemoveUserInList', (disconnectedUser) => {
 
     console.log(disconnectedUser,'유저 제이슨파일 원본');
     const tempUserInfo = JSON.parse(disconnectedUser);
+    io.emit('logOutUserInfo',tempUserInfo.userServerID);
     UserList[tempUserInfo.userListIndex] = '';
     emptyListArray.push(tempUserInfo.userListIndex);
     console.log(tempUserInfo.userServerID,'지워짐');

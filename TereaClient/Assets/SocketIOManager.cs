@@ -16,6 +16,7 @@ public class SocketIOManager : MonoBehaviour
     [SerializeField]private UserInfo userInfo;
     public Queue<string> chattingQueue = new Queue<string>();
     public Queue<string> playerLoadWaiting = new Queue<string>();
+    public Queue<string> playerLeaveWaiting = new Queue<string>();
 
     private void Start()
     {
@@ -36,9 +37,9 @@ public class SocketIOManager : MonoBehaviour
         {
             GameObject.CreatePrimitive(PrimitiveType.Cube).name = playerLoadWaiting.Dequeue();
         }
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (playerLeaveWaiting.Count >0)
         {
-            socket.Emit("connectUser", "ㅁㅇㄴㄹ");
+            Destroy(GameObject.Find(playerLeaveWaiting.Dequeue()));
         }
 
 
@@ -80,6 +81,11 @@ public class SocketIOManager : MonoBehaviour
             Debug.Log("이름줄게");
             Debug.Log(tempJsonSTR + "이름");
             userInfo = tempInfo;
+        });
+        socket.On("logOutUserInfo", (userName) =>
+        {
+            chattingQueue.Enqueue(userName+"님이 로그아웃했습니다.");
+            playerLeaveWaiting.Enqueue(userName.ToString());
         });
 
     }
