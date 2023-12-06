@@ -17,7 +17,7 @@ public class SocketIOManager : MonoBehaviour
     public Queue<string> chattingQueue = new Queue<string>();
     public Queue<string> playerLoadWaiting = new Queue<string>();
     public Queue<string> playerLeaveWaiting = new Queue<string>();
-
+    public float timer = 0;
     private void Start()
     {
         SetSocket("http://localhost:3000");
@@ -41,7 +41,12 @@ public class SocketIOManager : MonoBehaviour
         {
             Destroy(GameObject.Find(playerLeaveWaiting.Dequeue()));
         }
-
+        timer += Time.deltaTime;
+        if (timer > 2)
+        {
+            PlayerPosPacket(transform.position);
+            timer = 0;
+        }
 
     }
     private void SendPressed()
@@ -75,21 +80,44 @@ public class SocketIOManager : MonoBehaviour
         socket.On("setUserInfo", (userServerInfo) =>
         {
             string tempJsonSTR = userServerInfo.ToString();
-            tempJsonSTR = tempJsonSTR.Remove(tempJsonSTR.Length-1,1);
-            tempJsonSTR = tempJsonSTR.Remove(0,1);
+            tempJsonSTR = ServerReflectedJson(tempJsonSTR);
             UserInfo tempInfo = JsonConvert.DeserializeObject<UserInfo>(tempJsonSTR);
             Debug.Log("이름줄게");
             Debug.Log(tempJsonSTR + "이름");
             userInfo = tempInfo;
         });
-        socket.On("logOutUserInfo", (userName) =>
+        socket.On("PlayerPosPacket", (plrPos) =>
+        {
+            string tempSTR = plrPos.ToString();
+            tempSTR = ServerReflectedJson(tempSTR);
+            Debug.Log(tempSTR);
+            UserPos convertedPos = JsonConvert.DeserializeObject<UserPos>(tempSTR);
+            Debug.Log(convertedPos);
+        });
+    socket.On("logOutUserInfo", (userName) =>
         {
             chattingQueue.Enqueue(userName+"님이 로그아웃했습니다.");
             playerLeaveWaiting.Enqueue(userName.ToString());
         });
 
     }
-    
+    private string ServerReflectedJson(string tempJsonSTR)
+    {
+        tempJsonSTR = tempJsonSTR.Remove(tempJsonSTR.Length - 1, 1);
+        tempJsonSTR = tempJsonSTR.Remove(0, 1);
+        return tempJsonSTR;
+    }
+    public void PlayerPosPacket(Vector3 vec3)
+    {
+        UserPos userPos = new UserPos
+        {
+            xPos = vec3.x,
+            yPos = vec3.y,
+            zPos = vec3.z,
+            userName = userInfo.userServerID
+        };
+        socket.Emit("PlayerPosPacket", JsonConvert.SerializeObject(userPos));
+    }
     private void OnApplicationQuit()
     {
         socket.Emit("RemoveUserInList", JsonConvert.SerializeObject(userInfo));
@@ -102,4 +130,12 @@ public class UserInfo
 {
     public int userListIndex;
     public string userServerID;
+}
+[System.Serializable]
+public class UserPos
+{
+    public float xPos;
+    public float yPos;
+    public float zPos;
+    public string userName;
 }

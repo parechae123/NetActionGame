@@ -68,7 +68,12 @@ io.on('connection', (socket) => {
     //socketIO에서는 앞에 있는 emit(주소,자료)형태로 전송해줌
   });
 
-
+  socket.on('PlayerPosPacket',(pos)=>{
+    console.log('들어오긴함');
+    console.log(pos);
+    const tempUserPos =JSON.parse(pos);
+    io.emit('PlayerPosPacket',tempUserPos)
+  });
   // 클라이언트가 연결을 종료할 때 실행됩니다.
   socket.on('RemoveUserInList', (disconnectedUser) => {
 
