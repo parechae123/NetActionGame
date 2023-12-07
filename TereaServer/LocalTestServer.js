@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
     UserInfo.userListIndex = UserList.length-1;
   }
   io.emit('connectUser',tempName);
-  socket.emit('setUserInfo',UserInfo)
+  socket.emit('setUserInfo',UserInfo);
   console.log(UserInfo.userServerID,': ID   ',UserInfo.userListIndex,': Index ');
   console.log(UserList);
 

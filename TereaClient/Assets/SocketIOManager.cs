@@ -6,6 +6,7 @@ using SocketIOClient;
 using JetBrains.Annotations;
 using UnityEngine.UI;
 using Newtonsoft.Json;
+using System.Globalization;
 
 public class SocketIOManager : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class SocketIOManager : MonoBehaviour
     public Queue<string> chattingQueue = new Queue<string>();
     public Queue<string> playerLoadWaiting = new Queue<string>();
     public Queue<string> playerLeaveWaiting = new Queue<string>();
+    public Queue<UserPos> movingList = new Queue<UserPos>();
+    private Dictionary<string,Transform> playerTRList = new Dictionary<string, Transform>();
     public float timer = 0;
     private void Start()
     {
@@ -33,9 +36,27 @@ public class SocketIOManager : MonoBehaviour
         {
             chattingWindow.text += "\n" + chattingQueue.Dequeue();
         }
-        if (playerLoadWaiting.Count >0)
+        if (playerLoadWaiting.Count >0 && userInfo.userServerID != string.Empty)
         {
-            GameObject.CreatePrimitive(PrimitiveType.Cube).name = playerLoadWaiting.Dequeue();
+            string tempName = playerLoadWaiting.Dequeue();
+            if (tempName != userInfo.userServerID)
+            { 
+                GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                obj.name = tempName;
+                playerTRList.Add(obj.name, obj.transform);
+            }
+            else
+            {
+                GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                playerTRList.Add(userInfo.userServerID, obj.transform);
+                playerTRList[userInfo.userServerID].gameObject.AddComponent<PlayerController>();
+
+                obj.name = userInfo.userServerID;
+            }
+        }
+        if(movingList.Count > 0) 
+        {
+            UserPosUpdate(movingList.Dequeue());
         }
         if (playerLeaveWaiting.Count >0)
         {
@@ -44,11 +65,11 @@ public class SocketIOManager : MonoBehaviour
         timer += Time.deltaTime;
         if (timer > 2)
         {
-            PlayerPosPacket(transform.position);
+            PlayerPosPacket(playerTRList[userInfo.userServerID].position);
             timer = 0;
         }
-
     }
+
     private void SendPressed()
     {
         socket.Emit("chat message", SendField.text);
@@ -71,9 +92,13 @@ public class SocketIOManager : MonoBehaviour
         });
         socket.On("connectUser", (ClientName) =>
         {
-            Debug.Log("이름줄게");
-            Debug.Log(ClientName.ToString() + "이름");
-            playerLoadWaiting.Enqueue(ClientName.ToString());
+            Debug.Log(ClientName);
+            string tempName = ServerReflectedJson(ClientName.ToString());
+            tempName = ServerReflectedJson(tempName);
+/*            string tempString = JsonConvert.DeserializeObject<string>(ClientName.ToString());
+            
+            Debug.Log(ClientName);*/
+            playerLoadWaiting.Enqueue(tempName);
             
 
         });
@@ -84,7 +109,12 @@ public class SocketIOManager : MonoBehaviour
             UserInfo tempInfo = JsonConvert.DeserializeObject<UserInfo>(tempJsonSTR);
             Debug.Log("이름줄게");
             Debug.Log(tempJsonSTR + "이름");
+
+            Debug.Log("추가됨");
+
+
             userInfo = tempInfo;
+
         });
         socket.On("PlayerPosPacket", (plrPos) =>
         {
@@ -92,15 +122,26 @@ public class SocketIOManager : MonoBehaviour
             tempSTR = ServerReflectedJson(tempSTR);
             Debug.Log(tempSTR);
             UserPos convertedPos = JsonConvert.DeserializeObject<UserPos>(tempSTR);
+            if (convertedPos.userName == userInfo.userServerID)
+            {
+                return;
+            }
+            movingList.Enqueue(convertedPos);
             Debug.Log(convertedPos);
         });
-    socket.On("logOutUserInfo", (userName) =>
+        socket.On("logOutUserInfo", (userName) =>
         {
             chattingQueue.Enqueue(userName+"님이 로그아웃했습니다.");
             playerLeaveWaiting.Enqueue(userName.ToString());
         });
 
     }
+    private void UserPosUpdate(UserPos tempPosInfo)
+    {
+        Vector3 sumedPos = new Vector3(tempPosInfo.xPos, tempPosInfo.yPos, tempPosInfo.zPos);
+        playerTRList[tempPosInfo.userName].position  = sumedPos;
+    }
+
     private string ServerReflectedJson(string tempJsonSTR)
     {
         tempJsonSTR = tempJsonSTR.Remove(tempJsonSTR.Length - 1, 1);
@@ -116,6 +157,7 @@ public class SocketIOManager : MonoBehaviour
             zPos = vec3.z,
             userName = userInfo.userServerID
         };
+        //플레이어 tr대입해줘야함
         socket.Emit("PlayerPosPacket", JsonConvert.SerializeObject(userPos));
     }
     private void OnApplicationQuit()
