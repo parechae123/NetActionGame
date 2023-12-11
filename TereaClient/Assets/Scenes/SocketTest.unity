@@ -701,6 +701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SendBTN: {fileID: 905817538}
   SendField: {fileID: 2139578281}
+  chattingContent: {fileID: 1671835424}
   chattingWindow: {fileID: 1604663693}
   userInfo:
     userListIndex: 0
