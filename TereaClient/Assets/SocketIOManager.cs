@@ -6,6 +6,7 @@ using SocketIOClient;
 using JetBrains.Annotations;
 using UnityEngine.UI;
 using Newtonsoft.Json;
+using System.Linq;
 using System.Globalization;
 
 public class SocketIOManager : MonoBehaviour
@@ -35,6 +36,8 @@ public class SocketIOManager : MonoBehaviour
         if (chattingQueue.Count >0)
         {
             chattingWindow.text += "\n" + chattingQueue.Dequeue();
+            int line = chattingWindow.text.IndexOf("\n");
+            Debug.Log(line);
         }
         if (playerLoadWaiting.Count >0 && userInfo.userServerID != string.Empty)
         {
@@ -60,7 +63,7 @@ public class SocketIOManager : MonoBehaviour
         }
         if (playerLeaveWaiting.Count >0)
         {
-            Destroy(GameObject.Find(playerLeaveWaiting.Dequeue()));
+            Destroy(playerTRList[playerLeaveWaiting.Dequeue()].gameObject);
         }
         timer += Time.deltaTime;
         if (timer > 2)
@@ -72,7 +75,8 @@ public class SocketIOManager : MonoBehaviour
 
     private void SendPressed()
     {
-        socket.Emit("chat message", SendField.text);
+        socket.Emit("chat message", userInfo.userServerID+" : "+SendField.text);
+        SendField.text = string.Empty;
     }
     private void SetSocket(string uri)
     {
@@ -88,7 +92,9 @@ public class SocketIOManager : MonoBehaviour
         socket.On("chat message", (msg) =>
         {
             Debug.Log(msg.ToString());
-            chattingQueue.Enqueue(msg.ToString());
+            string tempString =ServerReflectedJson(msg.ToString());
+            tempString =ServerReflectedJson(tempString);
+            chattingQueue.Enqueue(tempString);
         });
         socket.On("connectUser", (ClientName) =>
         {
@@ -131,8 +137,10 @@ public class SocketIOManager : MonoBehaviour
         });
         socket.On("logOutUserInfo", (userName) =>
         {
-            chattingQueue.Enqueue(userName+"님이 로그아웃했습니다.");
-            playerLeaveWaiting.Enqueue(userName.ToString());
+            string tempName = ServerReflectedJson(userName.ToString());
+            tempName = ServerReflectedJson(tempName);
+            chattingQueue.Enqueue(tempName + "님이 로그아웃했습니다.");
+            playerLeaveWaiting.Enqueue(tempName);
         });
 
     }
