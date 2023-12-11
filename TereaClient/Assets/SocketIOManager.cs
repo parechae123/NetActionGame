@@ -14,6 +14,7 @@ public class SocketIOManager : MonoBehaviour
     public SocketIOUnity socket;
     public Button SendBTN;
     public InputField SendField;
+    public RectTransform chattingContent;
     public Text chattingWindow;
     [SerializeField]private UserInfo userInfo;
     public Queue<string> chattingQueue = new Queue<string>();
@@ -35,9 +36,15 @@ public class SocketIOManager : MonoBehaviour
     {
         if (chattingQueue.Count >0)
         {
-            chattingWindow.text += "\n" + chattingQueue.Dequeue();
-            int line = chattingWindow.text.IndexOf("\n");
-            Debug.Log(line);
+            if (chattingWindow.text == string.Empty)
+            {
+                chattingWindow.text += chattingQueue.Dequeue();
+            }
+            else
+            {
+                chattingWindow.text += "\n" + chattingQueue.Dequeue();
+            }
+            GetChattingLine(chattingWindow.text, chattingContent, 3, 24);
         }
         if (playerLoadWaiting.Count >0 && userInfo.userServerID != string.Empty)
         {
@@ -66,7 +73,7 @@ public class SocketIOManager : MonoBehaviour
             Destroy(playerTRList[playerLeaveWaiting.Dequeue()].gameObject);
         }
         timer += Time.deltaTime;
-        if (timer > 2)
+        if (timer > 0.2f)
         {
             PlayerPosPacket(playerTRList[userInfo.userServerID].position);
             timer = 0;
@@ -155,6 +162,30 @@ public class SocketIOManager : MonoBehaviour
         tempJsonSTR = tempJsonSTR.Remove(tempJsonSTR.Length - 1, 1);
         tempJsonSTR = tempJsonSTR.Remove(0, 1);
         return tempJsonSTR;
+    }
+    private short GetChattingLine(string targetSTR, RectTransform targetWindow = null, short targetCount = -1,short fontSize = 0)
+    {
+        string tempSTR = targetSTR;
+        short tempCount = 0;
+        while (tempSTR.IndexOf("\n") != -1)
+        {
+            tempSTR = tempSTR.Remove(tempSTR.IndexOf("\n"),2);
+            tempCount++;
+            Debug.Log("와일문 속 숫자는 현재 " +tempSTR.IndexOf("\n"));
+            if (tempSTR.IndexOf("\n") == -1)
+            {
+                if (targetWindow != null &&targetCount > -1)
+                {
+                    if (tempCount>2)
+                    {
+                        targetWindow.sizeDelta = new Vector2(targetWindow.sizeDelta.x, targetWindow.sizeDelta.y + fontSize);
+                        targetWindow.anchoredPosition += Vector2.up * fontSize;
+                    }
+                }
+                return tempCount;
+            }
+        }
+        return -1;
     }
     public void PlayerPosPacket(Vector3 vec3)
     {
