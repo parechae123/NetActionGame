@@ -45,7 +45,7 @@ public class SocketIOManager : MonoBehaviour
             {
                 chattingWindow.text += "\n" + chattingQueue.Dequeue();
             }
-            GetChattingLine(chattingWindow.text, chattingContent, 3, 24);
+            GetChattingLine(chattingWindow.text, chattingContent, 3);
         }
         if (playerLoadWaiting.Count >0 && userInfo.userServerID != string.Empty)
         {
@@ -74,7 +74,7 @@ public class SocketIOManager : MonoBehaviour
             Destroy(playerTRList[playerLeaveWaiting.Dequeue()].gameObject);
         }
         timer += Time.deltaTime;
-        if (timer > 0.2f)
+        if (timer > 0.2f&&playerTRList.Count > 0)
         {
             PlayerPosPacket(playerTRList[userInfo.userServerID].position);
             timer = 0;
@@ -164,34 +164,11 @@ public class SocketIOManager : MonoBehaviour
         tempJsonSTR = tempJsonSTR.Remove(0, 1);
         return tempJsonSTR;
     }
-    private short GetChattingLine(string targetSTR, RectTransform targetWindow = null, short targetCount = -1,short fontSize = 0)
+    private short GetChattingLine(string targetSTR, RectTransform targetWindow = null, short targetCount = -1)
     {
         string tempSTR = targetSTR;
         short tempCount = 0;
         Debug.Log(targetWindow.rect.width);
-        if (targetWindow != null)
-        {
-            int tempA = (int)Math.Floor(targetWindow.rect.width / fontSize);
-            if (targetWindow.rect.width < (tempSTR.IndexOf("\n") * fontSize))
-            {
-                for (byte i = 1; chattingWindow.text.Length / tempA > i; i++)
-                {
-                    chattingWindow.text = chattingWindow.text.Insert(tempA*i, "\n");
-                }                
-            }
-            else if (tempSTR.IndexOf("\n") == -1)
-            {
-                if (targetWindow.rect.width < (fontSize*targetSTR.Length))
-                {
-                    for (byte i = 1; chattingWindow.text.Length / tempA> i; i++)
-                    {
-                        chattingWindow.text = chattingWindow.text.Insert(tempA * i, "\n");
-                    }
-                    Debug.Log(targetWindow.rect.width / fontSize);
-                }
-            }
-            tempSTR = chattingWindow.text;
-        }
         while (tempSTR.IndexOf("\n") != -1)
         {
 
@@ -202,10 +179,16 @@ public class SocketIOManager : MonoBehaviour
             {
                 if (targetWindow != null &&targetCount > -1)
                 {
-                    if (tempCount>2)
+                    if (tempCount>targetCount-1)
                     {
-                        targetWindow.sizeDelta = new Vector2(targetWindow.sizeDelta.x, targetWindow.sizeDelta.y + fontSize);
-                        targetWindow.anchoredPosition += Vector2.up * fontSize;
+                        float beforeScaleYDelta = targetWindow.sizeDelta.y;
+                        targetWindow.sizeDelta = new Vector2(targetWindow.sizeDelta.x, chattingWindow.preferredHeight);
+                        Debug.Log(chattingWindow.preferredHeight +"프리페어리드 하이트");
+                        if (targetWindow.anchoredPosition.y >= beforeScaleYDelta/2)
+                        {
+                            targetWindow.anchoredPosition += new Vector2(0, (targetWindow.sizeDelta.y-beforeScaleYDelta)/2);
+                            Debug.Log(targetWindow.anchoredPosition.y +"컨텐츠 위치");
+                        }
                     }
                 }
                 return tempCount;
