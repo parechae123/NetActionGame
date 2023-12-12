@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Globalization;
+using TMPro;
 
 public class SocketIOManager : MonoBehaviour
 {
@@ -167,8 +168,33 @@ public class SocketIOManager : MonoBehaviour
     {
         string tempSTR = targetSTR;
         short tempCount = 0;
+        Debug.Log(targetWindow.rect.width);
+        if (targetWindow != null)
+        {
+            int tempA = (int)Math.Floor(targetWindow.rect.width / fontSize);
+            if (targetWindow.rect.width < (tempSTR.IndexOf("\n") * fontSize))
+            {
+                for (byte i = 1; chattingWindow.text.Length / tempA > i; i++)
+                {
+                    chattingWindow.text = chattingWindow.text.Insert(tempA*i, "\n");
+                }                
+            }
+            else if (tempSTR.IndexOf("\n") == -1)
+            {
+                if (targetWindow.rect.width < (fontSize*targetSTR.Length))
+                {
+                    for (byte i = 1; chattingWindow.text.Length / tempA> i; i++)
+                    {
+                        chattingWindow.text = chattingWindow.text.Insert(tempA * i, "\n");
+                    }
+                    Debug.Log(targetWindow.rect.width / fontSize);
+                }
+            }
+            tempSTR = chattingWindow.text;
+        }
         while (tempSTR.IndexOf("\n") != -1)
         {
+
             tempSTR = tempSTR.Remove(tempSTR.IndexOf("\n"),2);
             tempCount++;
             Debug.Log("와일문 속 숫자는 현재 " +tempSTR.IndexOf("\n"));
